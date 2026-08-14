@@ -1,0 +1,78 @@
+name: Refresh vendored RNNoise once
+
+on:
+  push:
+    branches:
+      - update-rnnoise-vst2
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: update-rnnoise-vst2
+          fetch-depth: 0
+
+      - name: Fetch target RNNoise snapshot
+        run: |
+          git clone https://github.com/xiph/rnnoise.git /tmp/rnnoise
+          git -C /tmp/rnnoise checkout 70f1d256acd4b34a572f999a05c87bf00b67730d
+
+      - name: Refresh files changed since vendored snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            .gitlab-ci.yml
+            README
+            download_model.sh
+            include/rnnoise.h
+            m4/attributes.m4
+            model_version
+            scripts/dump_features_parallel.sh
+            src/denoise.c
+            src/dump_features.c
+            src/rnn.c
+            torch/rnnoise/rnnoise.py
+            torch/rnnoise/train_rnnoise.py
+          )
+
+          for file in "${files[@]}"; do
+            mkdir -p "external/rnnoise/$(dirname "$file")"
+            cp "/tmp/rnnoise/$file" "external/rnnoise/$file"
+          done
+
+          rm -f external/rnnoise/TRAINING-README
+
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('external/rnnoise/.gitrepo')
+          text = path.read_text()
+          lines = []
+          for line in text.splitlines():
+              if line.startswith('\tcommit = '):
+                  line = '\tcommit = 70f1d256acd4b34a572f999a05c87bf00b67730d'
+              lines.append(line)
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+
+          # One-shot workflow: do not keep this helper in the resulting branch.
+          rm .github/workflows/refresh-rnnoise-once.yml
+
+      - name: Verify scope and commit refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --short
+          test "$(git diff --name-only | grep -E '^external/rnnoise/' | wc -l)" -ge 1
+          test -z "$(git diff --name-only | grep -Ev '^(external/rnnoise/|\.github/workflows/refresh-rnnoise-once.yml$)' || true)"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "vendor: refresh RNNoise to 70f1d256"
+          git push origin HEAD:update-rnnoise-vst2
