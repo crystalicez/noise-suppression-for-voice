@@ -22,22 +22,26 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
-      fail-fast: true
+      # Keep independent platform verification running even if an unrelated
+      # platform/toolchain fails (for example old JUCE vs a newer macOS SDK).
+      fail-fast: false
       matrix:
         config:
           - {
             name: "Windows MSVC",
-            os: windows-2019,
+            os: windows-2022,
             cc: "cl", cxx: "cl",
             build_params: "--config Release",
-            artifact_prefix: "win"
+            artifact_prefix: "win",
+            build_ladspa: 0
           }
           - {
             name: "Ubuntu Latest GCC",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
             build_params: "",
-            artifact_prefix: "linux"
+            artifact_prefix: "linux",
+            build_ladspa: 1
           }
           - {
             name: "macOS Latest Clang",
@@ -45,6 +49,7 @@ jobs:
             cc: "clang", cxx: "clang++",
             build_params: "",
             artifact_prefix: "macos",
+            build_ladspa: 1
           }
 
     steps:
@@ -59,7 +64,7 @@ jobs:
       - name: ccache
         # TODO: Make MSVC build work with ccache
         if: ${{ matrix.config.os != 'windows-latest' }}
-        uses: hendrikmuhs/ccache-action@v1.2.2
+        uses: hendrikmuhs/ccache-action@v1.2.23
         with:
           key: ${{ matrix.config.os }}
           variant: ccache
@@ -72,7 +77,7 @@ jobs:
           CMAKE_OSX_ARCHITECTURES: "x86_64;arm64"
         run: >-
           cmake -B${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          -DBUILD_LADSPA_PLUGIN=1
+          -DBUILD_LADSPA_PLUGIN=${{matrix.config.build_ladspa}}
           -DBUILD_VST_PLUGIN=1
           -DBUILD_VST3_PLUGIN=${{env.full_build}}
           -DBUILD_LV2_PLUGIN=${{env.full_build}}
@@ -91,7 +96,7 @@ jobs:
 
       - name: Upload artifacts
         id: upload-artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.config.artifact_prefix }}-rnnoise
           path: |
