@@ -32,14 +32,16 @@ jobs:
             os: windows-2022,
             cc: "cl", cxx: "cl",
             build_params: "--config Release",
-            artifact_prefix: "win"
+            artifact_prefix: "win",
+            build_ladspa: 0
           }
           - {
             name: "Ubuntu Latest GCC",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++",
             build_params: "",
-            artifact_prefix: "linux"
+            artifact_prefix: "linux",
+            build_ladspa: 1
           }
           - {
             name: "macOS Latest Clang",
@@ -47,6 +49,7 @@ jobs:
             cc: "clang", cxx: "clang++",
             build_params: "",
             artifact_prefix: "macos",
+            build_ladspa: 1
           }
 
     steps:
@@ -74,7 +77,7 @@ jobs:
           CMAKE_OSX_ARCHITECTURES: "x86_64;arm64"
         run: >-
           cmake -B${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          -DBUILD_LADSPA_PLUGIN=1
+          -DBUILD_LADSPA_PLUGIN=${{matrix.config.build_ladspa}}
           -DBUILD_VST_PLUGIN=1
           -DBUILD_VST3_PLUGIN=${{env.full_build}}
           -DBUILD_LV2_PLUGIN=${{env.full_build}}
