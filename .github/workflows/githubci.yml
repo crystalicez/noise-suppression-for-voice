@@ -22,7 +22,9 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
-      fail-fast: true
+      # Keep independent platform verification running even if an unrelated
+      # platform/toolchain fails (for example old JUCE vs a newer macOS SDK).
+      fail-fast: false
       matrix:
         config:
           - {
