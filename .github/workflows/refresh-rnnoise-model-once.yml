@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   refresh-model:
+    # One-shot helper: it removes itself after committing the official model data.
     if: github.head_ref == 'update-rnnoise-vst2'
     runs-on: ubuntu-latest
     steps:
