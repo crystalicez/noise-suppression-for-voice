@@ -20,15 +20,27 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Download and verify official Xiph model
+      - name: Download and verify Xiph model
         shell: bash
         run: |
           set -euxo pipefail
           cd external/rnnoise
           expected="$(cat model_version)"
-          ./download_model.sh
           archive="rnnoise_data-${expected}.tar.gz"
+          xiph_url="https://media.xiph.org/rnnoise/models/${archive}"
+          mirror_url="https://ftp.uni-erlangen.de/mirrors/gentoo/distfiles/dd/${archive}"
+
+          # Prefer Xiph. GitHub-hosted runners currently time out reaching
+          # media.xiph.org, so use a public mirror only as a transport fallback.
+          if ! wget --timeout=15 --tries=1 -O "${archive}" "${xiph_url}"; then
+            rm -f "${archive}"
+            wget --timeout=30 --tries=2 -O "${archive}" "${mirror_url}"
+          fi
+
+          # model_version is the SHA-256 published by the Xiph source tree.
+          # This makes a mirror copy acceptable only if it is byte-identical.
           echo "${expected}  ${archive}" | sha256sum --check --strict
+          tar xvomf "${archive}"
 
       - name: Verify generated runtime model changed
         shell: bash
@@ -36,7 +48,7 @@ jobs:
           set -euxo pipefail
           git status --short -- external/rnnoise/src/rnnoise_data.c external/rnnoise/src/rnnoise_data.h external/rnnoise/src/rnnoise_data_little.c
           if git diff --quiet -- external/rnnoise/src/rnnoise_data.c external/rnnoise/src/rnnoise_data.h external/rnnoise/src/rnnoise_data_little.c; then
-            echo "Official model archive did not change any bundled runtime model files" >&2
+            echo "Verified model archive did not change any bundled runtime model files" >&2
             exit 1
           fi
 
