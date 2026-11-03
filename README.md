@@ -49,7 +49,7 @@ This is a maintained refresh of [werman/noise-suppression-for-voice](https://git
 
 **Important:** An updated model is **not** a measured guarantee of better denoising quality, speech naturalness, CPU usage or latency. A controlled audio benchmark against the original plugin is still needed. The existing 48 kHz input requirement and the inherited plugin limitations below continue to apply.
 
-- [See the code changes compared with werman's original](https://github.com/crystalicez/noise-suppression-for-voice/compare/werman:noise-suppression-for-voice:master...master)
+- [See the code changes compared with werman's original](https://github.com/crystalicez/noise-suppression-for-voice/compare/9c4e5c28d8950e2cef837d8a0abd36c2d...7a64623f681d504a1deedea01521ec15e3607c5f)
 - [See releases for this fork](https://github.com/crystalicez/noise-suppression-for-voice/releases)
 - [See the upstream RNNoise model refresh](https://github.com/xiph/rnnoise/commit/130913db902535a19eb477a9f4cdd5c922d63cf2)
 
