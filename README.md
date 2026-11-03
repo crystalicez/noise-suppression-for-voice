@@ -10,8 +10,8 @@
 
 [licence]: https://img.shields.io/badge/License-GPLv3-blue.svg
 [licence-url]: https://www.gnu.org/licenses/gpl-3.0
-[version]: https://img.shields.io/github/v/release/werman/noise-suppression-for-voice?label=Latest&style=flat
-[version-url]: https://github.com/werman/noise-suppression-for-voice/releases
+[version]: https://img.shields.io/github/v/release/crystalicez/noise-suppression-for-voice?label=Latest&style=flat
+[version-url]: https://github.com/crystalicez/noise-suppression-for-voice/releases
 
 A real-time noise suppression plugin for voice based on [Xiph's RNNoise](https://github.com/xiph/rnnoise). [More info about the base library](https://people.xiph.org/~jm/demo/rnnoise/).
 
@@ -31,9 +31,31 @@ There is a minimalistic GUI with all parameters and diagnostic stats:
     <img src="https://i.imgur.com/xPkoqlU.png" alt="GUI of the plugin">
 </div>
 
+## What's Different in This Fork?
+
+This is a maintained refresh of [werman/noise-suppression-for-voice](https://github.com/werman/noise-suppression-for-voice), bringing its bundled [Xiph RNNoise](https://github.com/xiph/rnnoise) runtime and model data up to the newer upstream snapshot while **preserving the existing plugin integration, especially VST2 support**.
+
+### Compared with the original project
+
+| | Original `werman/noise-suppression-for-voice` | This fork (`crystalicez/noise-suppression-for-voice`) |
+| --- | --- | --- |
+| Bundled RNNoise source | [`372f7b4`](https://github.com/xiph/rnnoise/commit/372f7b4b76cde4ca1ec4605353dd17898a99de38) | [`70f1d256`](https://github.com/xiph/rnnoise/commit/70f1d256acd4b34a572f999a05c87bf00b67730d) (February 2025) |
+| Bundled RNNoise model | Older model (`model_version: 0b50c45`) | Refreshed model from the January 30, 2025 upstream model update (`model_version: 0a8755f8...`) |
+| RNNoise implementation | Earlier vendored RNNoise implementation | Updated upstream RNNoise source, including inference and training-related changes |
+| VST2 and plugin behavior | Original VST2 wrapper, identifiers, GUI and VAD controls | **Retained** the original VST2 wrapper, identifiers, GUI and controls rather than replacing the plugin architecture |
+| Build/CI setup | Windows Server 2019 runner; fail-fast matrix; older artifact upload action | Windows Server 2022 runner; independent platform jobs (`fail-fast: false`); `upload-artifact@v4`; VST2 included in the build configuration |
+
+**Why use this fork?** You can use a more recent official RNNoise implementation and its bundled model without migrating away from the familiar plugin workflow or dropping VST2 compatibility. The update is deliberately focused on the RNNoise engine and model, not a redesign of the audio plugin.
+
+**Important:** An updated model is **not** a measured guarantee of better denoising quality, speech naturalness, CPU usage or latency. A controlled audio benchmark against the original plugin is still needed. The existing 48 kHz input requirement and the inherited plugin limitations below continue to apply.
+
+- [See the code changes compared with werman's original](https://github.com/crystalicez/noise-suppression-for-voice/compare/werman:noise-suppression-for-voice:master...master)
+- [See releases for this fork](https://github.com/crystalicez/noise-suppression-for-voice/releases)
+- [See the upstream RNNoise model refresh](https://github.com/xiph/rnnoise/commit/130913db902535a19eb477a9f4cdd5c922d63cf2)
+
 ## Releases
 
-[Latest releases](https://github.com/werman/noise-suppression-for-voice/releases)
+[Latest releases](https://github.com/crystalicez/noise-suppression-for-voice/releases)
 
 ## How-to
 
